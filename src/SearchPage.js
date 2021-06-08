@@ -4,31 +4,71 @@ import React from "react";
 
 //--------------------------------------
 import "./App.css";
+import { search } from "./BooksAPI";
 
 class SearchPage extends React.Component {
   state = {
+    books: [],
     query: "",
   };
-  updateQuery = (query) => {
+  async updateQuery(query) {
     this.setState(() => ({
       query: query,
     }));
-  };
-  render() {
-    this.props.books.map((book) => {
+    if (query === 0) {
+      this.setState({ books: [] });
+    } else {
+      const new_books = await search(query);
+      new_books.map((book) => {
+        if (!("shelf" in book)) {
+          book.shelf = "none";
+        }
+      });
+
+      this.setState(() => ({
+        books: new_books.filter((book) =>
+          book.title.toLowerCase().includes(query.toLowerCase())
+        ),
+      }));
+    }
+  }
+
+  async updateBooksState(query) {
+    const new_books = await search(query);
+    new_books.map((book) => {
       if (!("shelf" in book)) {
         book.shelf = "none";
       }
-      return book;
     });
 
+    new_books.filter((book) =>
+      book.title.toLowerCase().includes(query.toLowerCase())
+    );
+
+    this.setState(() => ({
+      books: new_books,
+    }));
+
+    return new_books;
+  }
+
+  // async componentDidMount() {
+  //   const searchBooks = await search("*");
+  //   console.log(searchBooks.length);
+  //   if (searchBooks.length > 0)
+  //     searchBooks.map((book) => {
+  //       if (!("shelf" in book)) {
+  //         book.shelf = "none";
+  //       }
+  //       return book;
+  //     });
+  //   this.setState({ books: this.props.books });
+  // }
+
+  render() {
     const { query } = this.state;
-    const showingBooks =
-      query === ""
-        ? this.props.books
-        : this.props.books.filter((book) =>
-            book.title.toLowerCase().includes(query.toLowerCase())
-          );
+
+    const showingBooks = query === "" ? [] : this.state.books;
 
     return (
       <div className="app">
@@ -70,7 +110,11 @@ class SearchPage extends React.Component {
                           <select
                             onChange={(event) => {
                               this.props.updateBooks(book, event.target.value);
+                              // .then(
+                              //   this.setState({books: searchBooks()})
+                              // )
                             }}
+                            value={book.shelf}
                           >
                             <option value="move" disabled>
                               Move to...
@@ -89,6 +133,8 @@ class SearchPage extends React.Component {
                     </div>
                   </li>
                 ))
+              ) : this.props.books.length === 0 ? (
+                <p> please enter a text </p>
               ) : (
                 <p>There's no books match this search</p>
               )}

@@ -11,6 +11,10 @@ import { update } from "./BooksAPI";
 //--------------------------------------
 import "./App.css";
 
+const Page404 = () => {
+  return <p> 404 </p>;
+};
+
 class BooksApp extends React.Component {
   state = {
     books: [],
@@ -66,6 +70,12 @@ class BooksApp extends React.Component {
               updateBooks={this.updateBooks}
             />
           )}
+        />
+        <Route
+          exact
+          path="/404"
+          name="Page 404"
+          render={(props) => <Page404 {...props} />}
         />
       </BrowserRouter>
     );

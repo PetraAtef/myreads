@@ -35,6 +35,7 @@ class BookShelf extends React.Component {
                         onChange={(event) => {
                           this.props.updateBooks(book, event.target.value);
                         }}
+                        value = {book.shelf}
                       >
                         <option value="move" disabled>
                           Move to...
