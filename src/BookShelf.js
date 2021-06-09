@@ -26,7 +26,9 @@ class BookShelf extends React.Component {
                         width: 128,
                         height: 193,
                         backgroundImage: `url(${
-                          book.imageLinks.smallThumbnail
+                          book.imageLinks && book.imageLinks.thumbnail
+                            ? book.imageLinks.thumbnail
+                            : ""
                         })`,
                       }}
                     />
@@ -35,7 +37,7 @@ class BookShelf extends React.Component {
                         onChange={(event) => {
                           this.props.updateBooks(book, event.target.value);
                         }}
-                        value = {book.shelf}
+                        value={book.shelf ? book.shelf : "none"}
                       >
                         <option value="move" disabled>
                           Move to...
@@ -49,8 +51,12 @@ class BookShelf extends React.Component {
                       </select>
                     </div>
                   </div>
-                  <div className="book-title">{book.title}</div>
-                  <div className="book-authors">{book.authors[0]}</div>
+                  <div className="book-title">
+                    {book.title ? book.title : ""}
+                  </div>
+                  <div className="book-authors">
+                    {book.authors ? book.authors[0] : ""}
+                  </div>
                 </div>
               </li>
             ))}

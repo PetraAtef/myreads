@@ -9,61 +9,39 @@ import { search } from "./BooksAPI";
 class SearchPage extends React.Component {
   state = {
     books: [],
-    query: "",
+    // query: "",
   };
   async updateQuery(query) {
-    this.setState(() => ({
-      query: query,
-    }));
-    if (query === 0) {
+    // this.setState(() => ({
+    //   query: query,
+    // }));
+    if (query === "") {
       this.setState({ books: [] });
     } else {
-      const new_books = await search(query);
-      new_books.map((book) => {
-        if (!("shelf" in book)) {
-          book.shelf = "none";
-        }
-      });
+      let new_books = await search(query);
+      if (!new_books.error) {
+        const old_books = this.props.books;
+        old_books.map((book) => {
+          if (book.title.toLowerCase().includes(query.toLowerCase()) === true)
+            new_books = [...new_books.filter(({ id }) => id !== book.id), book];
+          return new_books;
+        });
 
-      this.setState(() => ({
-        books: new_books.filter((book) =>
-          book.title.toLowerCase().includes(query.toLowerCase())
-        ),
-      }));
+        this.setState(() => ({
+          books: new_books,
+        }));
+        // .filter((book) =>
+        //   book.title.toLowerCase().includes(query.toLowerCase())
+        // )
+
+        // new_books = new_books.filter((book) => {
+        //   book.title.toLowerCase().includes(query.toLowerCase());
+        // });
+      } else {
+        this.setState({ books: [] });
+      }
     }
   }
-
-  async updateBooksState(query) {
-    const new_books = await search(query);
-    new_books.map((book) => {
-      if (!("shelf" in book)) {
-        book.shelf = "none";
-      }
-    });
-
-    new_books.filter((book) =>
-      book.title.toLowerCase().includes(query.toLowerCase())
-    );
-
-    this.setState(() => ({
-      books: new_books,
-    }));
-
-    return new_books;
-  }
-
-  // async componentDidMount() {
-  //   const searchBooks = await search("*");
-  //   console.log(searchBooks.length);
-  //   if (searchBooks.length > 0)
-  //     searchBooks.map((book) => {
-  //       if (!("shelf" in book)) {
-  //         book.shelf = "none";
-  //       }
-  //       return book;
-  //     });
-  //   this.setState({ books: this.props.books });
-  // }
 
   render() {
     const { query } = this.state;
@@ -84,7 +62,6 @@ class SearchPage extends React.Component {
               <input
                 type="text"
                 placeholder="Search by title or author"
-                value={query}
                 onChange={(event) => this.updateQuery(event.target.value)}
               />
             </div>
@@ -102,7 +79,9 @@ class SearchPage extends React.Component {
                             width: 128,
                             height: 193,
                             backgroundImage: `url(${
-                              book.imageLinks.smallThumbnail
+                              book.imageLinks && book.imageLinks.thumbnail
+                                ? book.imageLinks.thumbnail
+                                : ""
                             })`,
                           }}
                         />
@@ -110,11 +89,20 @@ class SearchPage extends React.Component {
                           <select
                             onChange={(event) => {
                               this.props.updateBooks(book, event.target.value);
+                              const { books } = this.state;
+                              book.shelf = event.target.value;
+                              const updatedBooks = [
+                                ...books.filter(({ id }) => id !== book.id),
+                                book,
+                              ];
+                              this.setState(() => ({
+                                books: updatedBooks,
+                              }));
                               // .then(
                               //   this.setState({books: searchBooks()})
                               // )
                             }}
-                            value={book.shelf}
+                            value={book.shelf ? book.shelf : "none"}
                           >
                             <option value="move" disabled>
                               Move to...
@@ -128,8 +116,12 @@ class SearchPage extends React.Component {
                           </select>
                         </div>
                       </div>
-                      <div className="book-title">{book.title}</div>
-                      <div className="book-authors">{book.authors[0]}</div>
+                      <div className="book-title">
+                        {book.title ? book.title : ""}
+                      </div>
+                      <div className="book-authors">
+                        {book.authors ? book.authors[0] : ""}
+                      </div>
                     </div>
                   </li>
                 ))
